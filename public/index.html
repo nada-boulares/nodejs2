@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Voitures</title>
+</head>
+<body>
+  <h1>Liste des voitures</h1>
+  <ul id="carList"></ul>
+
+  <h2>Ajouter une voiture</h2>
+  <form id="addCarForm">
+    <label for="carId">ID:</label>
+    <input type="text" id="carId" name="carId"><br>
+    <label for="carName">Nom:</label>
+    <input type="text" id="carName" name="carName"><br>
+    <button type="submit">Ajouter</button>
+  </form>
+
+  <h2>Mettre à jour une voiture</h2>
+  <form id="updateCarForm">
+    <label for="updateCarId">ID:</label>
+    <input type="text" id="updateCarId" name="updateCarId"><br>
+    <label for="updateCarName">Nouveau nom:</label>
+    <input type="text" id="updateCarName" name="updateCarName"><br>
+    <button type="submit">Mettre à jour</button>
+  </form>
+
+  <h2>Supprimer une voiture</h2>
+  <form id="deleteCarForm">
+    <label for="deleteCarId">ID:</label>
+    <input type="text" id="deleteCarId" name="deleteCarId"><br>
+    <button type="submit">Supprimer</button>
+  </form>
+
+  <script>
+    
+    function fetchCars() {
+      fetch('/api/voitures')
+        .then(response => response.json())
+        .then(data => {
+          const carList = document.getElementById('carList');
+          carList.innerHTML = '';
+          data.forEach(car => {
+            const listItem = document.createElement('li');
+            listItem.textContent = `${car.id}: ${car.name}`;
+            carList.appendChild(listItem);
+          });
+        });
+    }
+
+   
+    document.getElementById('addCarForm').addEventListener('submit', function(event) {
+      event.preventDefault();
+      const formData = new FormData(this);
+      fetch('/api/voitures', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(Object.fromEntries(formData))
+      })
+      .then(response => response.json())
+      .then(() => {
+        fetchCars();
+        this.reset();
+      });
+    });
+
+    
+    document.getElementById('updateCarForm').addEventListener('submit', function(event) {
+      event.preventDefault();
+      const formData = new FormData(this);
+      const carId = formData.get('updateCarId');
+      fetch(`/api/voitures/${carId}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ name: formData.get('updateCarName') })
+      })
+      .then(response => response.json())
+      .then(() => {
+        fetchCars();
+        this.reset();
+      });
+    });
+
+    
+    document.getElementById('deleteCarForm').addEventListener('submit', function(event) {
+      event.preventDefault();
+      const carId = this.deleteCarId.value;
+      fetch(`/api/voitures/${carId}`, {
+        method: 'DELETE'
+      })
+      .then(response => response.json())
+      .then(() => {
+        fetchCars();
+        this.reset();
+      });
+    });
+
+    
+    fetchCars();
+  </script>
+</body>
+</html>
